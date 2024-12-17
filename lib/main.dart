@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/weather_bloc.dart';
 import 'bloc/weather_event.dart';
 import 'bloc/weather_state.dart';
+import 'screens/detailed_weather_screen.dart';
 
 void main() => runApp(WeatherApp());
 
@@ -33,7 +34,7 @@ class WeatherScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 17, 17, 20),
       body: BlocBuilder<WeatherBloc, WeatherState>(
         builder: (context, state) {
           if (state is WeatherLoading) {
@@ -55,6 +56,7 @@ class WeatherScreen extends StatelessWidget {
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
+                      color: Colors.white,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -69,14 +71,27 @@ class WeatherScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Text(
-                          state.weather.temperature.toStringAsFixed(1),
-                          textScaleFactor: 1.2,
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 96,
-                            fontWeight: FontWeight.w900,
-                            height: 1.2,
-                            letterSpacing: -4,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetailedWeatherScreen(
+                                  weather: state.weather,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            state.weather.temperature.toStringAsFixed(1),
+                            textScaleFactor: 1.3,
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 115,
+                              fontWeight: FontWeight.w900,
+                              height: 1.2,
+                              letterSpacing: -4,
+                              color: Colors.blueAccent,
+                            ),
                           ),
                         ),
                         Text(
@@ -85,6 +100,8 @@ class WeatherScreen extends StatelessWidget {
                               state.weather.description,
                           style: GoogleFonts.spaceGrotesk(
                             fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
                           ),
                         ),
                       ],
