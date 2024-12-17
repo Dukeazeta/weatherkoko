@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../models/weather_model.dart';
 
 class DetailedWeatherScreen extends StatelessWidget {
@@ -13,137 +14,310 @@ class DetailedWeatherScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 17, 17, 20),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              weather.location,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      backgroundColor: const Color(0xFF1A1A1A),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            _buildWeatherInfo(),
-            const SizedBox(height: 30),
-            _buildDetailedInfo(),
-          ],
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTemperatureCard(),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildForecastCard(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 160,
+                child: _buildHourlyForecast(),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 120,
+                child: _buildInfoGrid(),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildWeatherInfo() {
-    return Row(
-      children: [
-        Text(
-          '${weather.temperature.toStringAsFixed(1)}°C',
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 64,
-            fontWeight: FontWeight.bold,
-            color: Colors.blueAccent,
-          ),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
+  Widget _buildTemperatureCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Text(
-                'Feels like ${weather.feelsLike.toStringAsFixed(1)}°C',
+                weather.location.toUpperCase(),
                 style: GoogleFonts.spaceGrotesk(
-                  fontSize: 18,
-                  color: Colors.white70,
+                  fontSize: 12,
+                  color: Colors.white54,
+                  letterSpacing: 1,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
-                weather.description,
+                '${weather.temperature.round()}',
                 style: GoogleFonts.spaceGrotesk(
-                  fontSize: 18,
+                  fontSize: 30,
+                  height: 1,
+                  fontWeight: FontWeight.bold,
                   color: Colors.white,
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: SizedBox(
+                    width: 70,
+                    height: 70,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(35),
+                      child: Lottie.asset(
+                        weather.animation,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildDetailedInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildInfoRow(
-          'Wind',
-          '${weather.windSpeed} m/s ${weather.windDirection}',
-          Icons.air,
-        ),
-        _buildInfoRow(
-          'Pressure',
-          '${weather.pressure ?? 'N/A'} hPa',
-          Icons.compress,
-        ),
-        _buildInfoRow(
-          'Humidity',
-          '${weather.humidity ?? 'N/A'}%',
-          Icons.water_drop,
-        ),
-        _buildInfoRow(
-          'UV Index',
-          '${weather.uvIndex ?? 'N/A'}',
-          Icons.wb_sunny,
-        ),
-        _buildInfoRow(
-          'Dew Point',
-          '${weather.dewPoint?.toStringAsFixed(1) ?? 'N/A'}°C',
-          Icons.opacity,
-        ),
-        _buildInfoRow(
-          'Visibility',
-          '${(weather.visibility ?? 0) / 1000} km',
-          Icons.visibility,
-        ),
-      ],
+  Widget _buildForecastCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Container(),
+      ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
+  Widget _buildHourlyForecast() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.white54, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 16,
-              color: Colors.white54,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '${weather.temperature.round()}',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        weather.location.toUpperCase(),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        weather.description.toUpperCase(),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const Icon(Icons.cloud_queue, color: Colors.lightBlue, size: 36),
+            ],
           ),
           const Spacer(),
-          Text(
-            value,
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 16,
-              color: Colors.white,
+          Container(
+            height: 32,
+            decoration: BoxDecoration(
+              color: const Color(0xFF3A3A3A),
+              borderRadius: BorderRadius.circular(16),
             ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 68,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlue,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '68°',
+                      style: GoogleFonts.spaceGrotesk(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 32,
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      '54°',
+                      style: GoogleFonts.spaceGrotesk(
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              'NOW',
+              '9',
+              '12P',
+              '3',
+              '6',
+              '9',
+              '12A',
+              '3',
+            ]
+                .map((time) => Text(
+                      time,
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 10,
+                        color: Colors.white70,
+                      ),
+                    ))
+                .toList(),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoGrid() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AIR QUALITY',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                Text(
+                  'GOOD',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'AQI:59',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2A2A2A),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'WANING CRESCENT',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 12,
+                    color: Colors.white70,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Icon(
+                  Icons.nightlight_round,
+                  color: Colors.white,
+                  size: 32,
+                ),
+                Text(
+                  '25%',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 12,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
