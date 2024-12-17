@@ -39,4 +39,22 @@ class WeatherService {
       throw Exception('Failed to fetch weather data: $e');
     }
   }
+
+  Future<Map<String, dynamic>> fetchDailyForecast() async {
+    final position = await getCurrentLocation();
+    final url = Uri.parse(
+        'https://api.openweathermap.org/data/2.5/forecast?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load forecast data: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch forecast data: $e');
+    }
+  }
 }

@@ -70,6 +70,15 @@ flutter:
   assets:
     - assets/Sunny.json
     - assets/Cloudy.json
+    - assets/Clear night.json
+    - assets/Cloudy night.json
+    - assets/Light Rain.json
+    - assets/Thunderstorm.json
+    - assets/Snowy night.json
+    - assets/Snowy.json
+    - assets/Foggy.json
+    - assets/Windy.json
+    - assets/Partly Cloudy.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

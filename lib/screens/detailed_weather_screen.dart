@@ -114,7 +114,28 @@ class DetailedWeatherScreen extends StatelessWidget {
     );
   }
 
+  String _getDayText(DateTime date) {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    
+    if (date.year == tomorrow.year && date.month == tomorrow.month && date.day == tomorrow.day) {
+      return 'TOMORROW';
+    }
+    
+    final weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    return weekdays[date.weekday - 1];
+  }
+
   Widget _buildForecastCard() {
+    if (weather.dailyForecast.isEmpty) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(16),
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.red,
@@ -122,7 +143,54 @@ class DetailedWeatherScreen extends StatelessWidget {
       ),
       child: AspectRatio(
         aspectRatio: 1,
-        child: Container(),
+        child: PageView.builder(
+          itemCount: weather.dailyForecast.length,
+          controller: PageController(viewportFraction: 1.0),
+          itemBuilder: (context, index) {
+            final forecast = weather.dailyForecast[index];
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    _getDayText(forecast.date),
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 12,
+                      color: Colors.white54,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  Text(
+                    '${forecast.temperature.round()}°',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 30,
+                      height: 1,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: SizedBox(
+                        width: 70,
+                        height: 70,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(35),
+                          child: Lottie.asset(
+                            forecast.animation,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
