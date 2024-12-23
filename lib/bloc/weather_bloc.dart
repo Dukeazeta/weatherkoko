@@ -141,6 +141,7 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
         windDirection: _getWindDirection(weatherData['wind']['deg'].toDouble()),
         pressure: weatherData['main']['pressure'],
         humidity: weatherData['main']['humidity'],
+        visibility: weatherData['visibility']?.toDouble(),
         dailyForecast: dailyForecasts,
         hourlyForecast: hourlyForecasts,
       );

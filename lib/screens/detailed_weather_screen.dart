@@ -1,65 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/weather_model.dart';
+import '../bloc/settings_bloc.dart';
+import 'settings_screen.dart';
 
 class DetailedWeatherScreen extends StatelessWidget {
   final WeatherModel weather;
 
-  const DetailedWeatherScreen({
-    Key? key,
-    required this.weather,
-  }) : super(key: key);
+  const DetailedWeatherScreen({super.key, required this.weather});
+
+  double _convertTemperature(double celsius, bool toFahrenheit) {
+    if (toFahrenheit) {
+      return (celsius * 9 / 5) + 32;
+    }
+    return celsius;
+  }
+
+  String _formatTemperature(double temperature, bool useFahrenheit) {
+    final convertedTemp = _convertTemperature(temperature, useFahrenheit);
+    return '${convertedTemp.round()}°${useFahrenheit ? 'F' : 'C'}';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.more_vert, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTemperatureCard(),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildForecastCard(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 160,
-                child: _buildHourlyForecast(),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 120,
-                child: _buildInfoGrid(),
+    return BlocBuilder<SettingsBloc, SettingsState>(
+      builder: (context, settingsState) {
+        return Scaffold(
+          backgroundColor: const Color(0xFF1B1D1F),
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.more_vert, color: Colors.white),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                  );
+                },
               ),
             ],
           ),
-        ),
-      ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTemperatureCard(settingsState.useFahrenheit),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildForecastCard(settingsState.useFahrenheit),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 160,
+                    child: _buildHourlyForecast(settingsState.useFahrenheit),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 120,
+                    child: _buildInfoGrid(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildTemperatureCard() {
+  Widget _buildTemperatureCard(bool useFahrenheit) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF2A2A2A),
@@ -84,7 +106,7 @@ class DetailedWeatherScreen extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                '${weather.temperature.round()}°',
+                _formatTemperature(weather.temperature, useFahrenheit),
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: 30,
                   height: 1,
@@ -117,16 +139,18 @@ class DetailedWeatherScreen extends StatelessWidget {
   String _getDayText(DateTime date) {
     final now = DateTime.now();
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    
-    if (date.year == tomorrow.year && date.month == tomorrow.month && date.day == tomorrow.day) {
+
+    if (date.year == tomorrow.year &&
+        date.month == tomorrow.month &&
+        date.day == tomorrow.day) {
       return 'TOMORROW';
     }
-    
+
     final weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     return weekdays[date.weekday - 1];
   }
 
-  Widget _buildForecastCard() {
+  Widget _buildForecastCard(bool useFahrenheit) {
     if (weather.dailyForecast.isEmpty) {
       return Container(
         decoration: BoxDecoration(
@@ -163,7 +187,7 @@ class DetailedWeatherScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${forecast.temperature.round()}°',
+                    _formatTemperature(forecast.temperature, useFahrenheit),
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 30,
                       height: 1,
@@ -195,7 +219,7 @@ class DetailedWeatherScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHourlyForecast() {
+  Widget _buildHourlyForecast(bool useFahrenheit) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -212,7 +236,7 @@ class DetailedWeatherScreen extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    '${weather.temperature.round()}°',
+                    _formatTemperature(weather.temperature, useFahrenheit),
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
@@ -262,7 +286,7 @@ class DetailedWeatherScreen extends StatelessWidget {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      '${weather.hourlyForecast[0].temperature.round()}°',
+                      _formatTemperature(weather.hourlyForecast[0].temperature, useFahrenheit),
                       style: GoogleFonts.spaceGrotesk(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -275,7 +299,7 @@ class DetailedWeatherScreen extends StatelessWidget {
                   child: Container(
                     alignment: Alignment.center,
                     child: Text(
-                      '${weather.hourlyForecast[1].temperature.round()}°',
+                      _formatTemperature(weather.hourlyForecast[1].temperature, useFahrenheit),
                       style: GoogleFonts.spaceGrotesk(
                         color: Colors.white70,
                       ),
@@ -326,21 +350,21 @@ class DetailedWeatherScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'AIR QUALITY',
+                  'WIND DIRECTION',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 12,
                     color: Colors.grey,
                   ),
                 ),
                 Text(
-                  'GOOD',
+                  weather.windDirection,
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  'AQI:59',
+                  '${weather.windSpeed.toStringAsFixed(1)} m/s',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 12,
                     color: Colors.grey,
@@ -362,20 +386,22 @@ class DetailedWeatherScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'WANING CRESCENT',
+                  'VISIBILITY',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 12,
                     color: Colors.white70,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Icon(
-                  Icons.nightlight_round,
-                  color: Colors.white,
-                  size: 32,
+                Text(
+                  '${((weather.visibility ?? 0).toDouble() / 1000).toStringAsFixed(1)}',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 Text(
-                  '25%',
+                  'kilometers',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 12,
                     color: Colors.white70,
