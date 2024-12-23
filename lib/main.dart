@@ -83,7 +83,7 @@ class WeatherScreen extends StatelessWidget {
                             );
                           },
                           child: Text(
-                            state.weather.temperature.toStringAsFixed(1),
+                            '${state.weather.temperature.round()}°',
                             textScaleFactor: 1.3,
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 115,

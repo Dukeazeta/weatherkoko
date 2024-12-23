@@ -44,6 +44,20 @@ class DailyForecast {
   }
 }
 
+class HourlyForecast {
+  final DateTime date;
+  final double temperature;
+  final String description;
+  final String icon;
+
+  HourlyForecast({
+    required this.date,
+    required this.temperature,
+    required this.description,
+    required this.icon,
+  });
+}
+
 class WeatherModel extends Equatable {
   final String description;
   final double temperature;
@@ -58,6 +72,7 @@ class WeatherModel extends Equatable {
   final double? dewPoint;
   final double? visibility;
   final List<DailyForecast> dailyForecast;
+  final List<HourlyForecast> hourlyForecast;
 
   const WeatherModel({
     required this.description,
@@ -72,7 +87,8 @@ class WeatherModel extends Equatable {
     this.uvIndex,
     this.dewPoint,
     this.visibility,
-    this.dailyForecast = const [],
+    required this.dailyForecast,
+    required this.hourlyForecast,
   });
 
   @override
@@ -90,6 +106,7 @@ class WeatherModel extends Equatable {
         dewPoint,
         visibility,
         dailyForecast,
+        hourlyForecast,
       ];
 
   factory WeatherModel.fromJson(Map<String, dynamic> json, String animationPath) {
@@ -110,6 +127,8 @@ class WeatherModel extends Equatable {
       uvIndex: json["uvi"] as int?,
       dewPoint: mainData["dew_point"] != null ? (mainData["dew_point"] as num).toDouble() : null,
       visibility: json["visibility"] != null ? (json["visibility"] as num).toDouble() : null,
+      dailyForecast: [],
+      hourlyForecast: [],
     );
   }
 
@@ -127,6 +146,7 @@ class WeatherModel extends Equatable {
     double? dewPoint,
     double? visibility,
     List<DailyForecast>? dailyForecast,
+    List<HourlyForecast>? hourlyForecast,
   }) {
     return WeatherModel(
       description: description ?? this.description,
@@ -142,6 +162,7 @@ class WeatherModel extends Equatable {
       dewPoint: dewPoint ?? this.dewPoint,
       visibility: visibility ?? this.visibility,
       dailyForecast: dailyForecast ?? this.dailyForecast,
+      hourlyForecast: hourlyForecast ?? this.hourlyForecast,
     );
   }
 }

@@ -84,7 +84,7 @@ class DetailedWeatherScreen extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                '${weather.temperature.round()}',
+                '${weather.temperature.round()}°',
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: 30,
                   height: 1,
@@ -212,7 +212,7 @@ class DetailedWeatherScreen extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    '${weather.temperature.round()}',
+                    '${weather.temperature.round()}°',
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
@@ -262,7 +262,7 @@ class DetailedWeatherScreen extends StatelessWidget {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      '68°',
+                      '${weather.hourlyForecast[0].temperature.round()}°',
                       style: GoogleFonts.spaceGrotesk(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -275,7 +275,7 @@ class DetailedWeatherScreen extends StatelessWidget {
                   child: Container(
                     alignment: Alignment.center,
                     child: Text(
-                      '54°',
+                      '${weather.hourlyForecast[1].temperature.round()}°',
                       style: GoogleFonts.spaceGrotesk(
                         color: Colors.white70,
                       ),

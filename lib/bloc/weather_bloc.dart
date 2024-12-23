@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:weatherkoko/models/weather_model.dart';
-import '../services/weather_service.dart';
+import '../services/weather_service.dart' as weather;
 import 'weather_event.dart';
 import 'weather_state.dart';
 
 class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
-  final WeatherService _weatherService;
+  final weather.WeatherService _weatherService;
 
   WeatherBloc(this._weatherService) : super(WeatherInitial()) {
     on<FetchWeather>(_onFetchWeather);
@@ -46,6 +46,29 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
     return isNight ? 'assets/Clear night.json' : 'assets/Sunny.json';
   }
 
+  String _getWindDirection(double degrees) {
+    const directions = [
+      'N',
+      'NNE',
+      'NE',
+      'ENE',
+      'E',
+      'ESE',
+      'SE',
+      'SSE',
+      'S',
+      'SSW',
+      'SW',
+      'WSW',
+      'W',
+      'WNW',
+      'NW',
+      'NNW'
+    ];
+    int index = ((degrees + 11.25) % 360 / 22.5).floor();
+    return directions[index];
+  }
+
   Future<void> _onFetchWeather(
     FetchWeather event,
     Emitter<WeatherState> emit,
@@ -71,39 +94,56 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
         final forecasts = entry.value;
         // Find forecast closest to 12:00
         final middayForecast = forecasts.reduce((a, b) {
-          final timeA = DateTime.fromMillisecondsSinceEpoch(a['dt'] * 1000);
-          final timeB = DateTime.fromMillisecondsSinceEpoch(b['dt'] * 1000);
-          final diffA = (timeA.hour - 12).abs();
-          final diffB = (timeB.hour - 12).abs();
+          final dateA = DateTime.fromMillisecondsSinceEpoch(a['dt'] * 1000);
+          final dateB = DateTime.fromMillisecondsSinceEpoch(b['dt'] * 1000);
+          final diffA = (dateA.hour - 12).abs();
+          final diffB = (dateB.hour - 12).abs();
           return diffA < diffB ? a : b;
         });
 
+        final date =
+            DateTime.fromMillisecondsSinceEpoch(middayForecast['dt'] * 1000);
         return DailyForecast(
-          date:
-              DateTime.fromMillisecondsSinceEpoch(middayForecast['dt'] * 1000),
+          date: date,
           temperature: middayForecast['main']['temp'].toDouble(),
-          minTemp: middayForecast['main']['temp_min'].toDouble(),
-          maxTemp: middayForecast['main']['temp_max'].toDouble(),
+          minTemp: forecasts
+              .map<double>((f) => f['main']['temp_min'].toDouble())
+              .reduce((a, b) => a < b ? a : b),
+          maxTemp: forecasts
+              .map<double>((f) => f['main']['temp_max'].toDouble())
+              .reduce((a, b) => a > b ? a : b),
           description: middayForecast['weather'][0]['description'],
           icon: middayForecast['weather'][0]['icon'],
         );
-      }).toList()
-        ..sort((a, b) => a.date.compareTo(b.date)); // Sort by date
+      }).toList();
 
-      // Remove today's forecast if it exists
-      final today = DateTime.now();
-      dailyForecasts.removeWhere((forecast) =>
-          forecast.date.year == today.year &&
-          forecast.date.month == today.month &&
-          forecast.date.day == today.day);
+      // Get hourly forecasts (first 24 entries from the forecast data)
+      final List<HourlyForecast> hourlyForecasts = forecastData['list']
+          .take(24)
+          .map<HourlyForecast>((item) {
+        final date = DateTime.fromMillisecondsSinceEpoch(item['dt'] * 1000);
+        return HourlyForecast(
+          date: date,
+          temperature: item['main']['temp'].toDouble(),
+          description: item['weather'][0]['description'],
+          icon: item['weather'][0]['icon'],
+        );
+      }).toList();
 
-      final animation = _getWeatherAnimation(
-        weatherData["weather"][0]["description"].toString(),
+      final weather = WeatherModel(
+        description: weatherData['weather'][0]['description'],
+        temperature: weatherData['main']['temp'].toDouble(),
+        feelsLike: weatherData['main']['feels_like'].toDouble(),
+        location: weatherData['name'],
+        animation:
+            _getWeatherAnimation(weatherData['weather'][0]['description']),
+        windSpeed: weatherData['wind']['speed'].toDouble(),
+        windDirection: _getWindDirection(weatherData['wind']['deg'].toDouble()),
+        pressure: weatherData['main']['pressure'],
+        humidity: weatherData['main']['humidity'],
+        dailyForecast: dailyForecasts,
+        hourlyForecast: hourlyForecasts,
       );
-      final weather = WeatherModel.fromJson(
-        weatherData,
-        animation,
-      ).copyWith(dailyForecast: dailyForecasts);
 
       emit(WeatherLoaded(weather));
     } catch (e) {

@@ -49,12 +49,42 @@ class WeatherService {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final data = json.decode(response.body);
+        
+        // Process hourly forecast data
+        final List<dynamic> hourlyList = data['list'];
+        final List<HourlyForecast> hourlyForecasts = [];
+        
+        // Get next 24 hours of forecast (8 data points, as each is 3 hours apart)
+        for (var i = 0; i < 8 && i < hourlyList.length; i++) {
+          final item = hourlyList[i];
+          final DateTime date = DateTime.fromMillisecondsSinceEpoch(item['dt'] * 1000);
+          hourlyForecasts.add(
+            HourlyForecast(
+              date: date,
+              temperature: item['main']['temp'].toDouble(),
+              description: item['weather'][0]['description'],
+              icon: item['weather'][0]['icon'],
+            ),
+          );
+        }
+        
+        data['hourly_forecast'] = hourlyForecasts;
+        return data;
       } else {
-        throw Exception('Failed to load forecast data: ${response.statusCode}');
+        throw Exception('Failed to load forecast data');
       }
     } catch (e) {
       throw Exception('Failed to fetch forecast data: $e');
     }
   }
+}
+
+class HourlyForecast {
+  final DateTime date;
+  final double temperature;
+  final String description;
+  final String icon;
+
+  HourlyForecast({required this.date, required this.temperature, required this.description, required this.icon});
 }
