@@ -13,14 +13,9 @@ import 'bloc/settings_event.dart';
 import 'screens/detailed_weather_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: 'YOUR_SUPABASE_URL',
-    anonKey: 'YOUR_SUPABASE_ANON_KEY',
-  );
   await SharedPreferences.getInstance();
   runApp(const WeatherApp());
 }
@@ -40,7 +35,7 @@ class WeatherApp extends StatelessWidget {
           create: (context) => SettingsBloc()..add(LoadSettings()),
         ),
       ],
-      child: MaterialApp(
+      child: MaterialApp(   
         home: WeatherScreen(),
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
