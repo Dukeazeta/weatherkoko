@@ -23,59 +23,91 @@ class WeatherService {
   }
 
   Future<Map<String, dynamic>> fetchWeatherByLocation() async {
-    final position = await getCurrentLocation();
-    final url = Uri.parse(
-        'https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric');
-
     try {
-      final response = await http.get(url);
+      final position = await getCurrentLocation();
+      final url = Uri.parse(
+          'https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric');
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to load weather data: ${response.statusCode}');
+      try {
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          return json.decode(response.body);
+        } else if (response.statusCode == 401) {
+          throw Exception('Invalid API key. Please check your OpenWeather API key.');
+        } else if (response.statusCode == 429) {
+          throw Exception('API rate limit exceeded. Please try again later.');
+        } else {
+          throw Exception('Weather API error: ${response.statusCode} - ${response.body}');
+        }
+      } catch (e) {
+        if (e.toString().contains('SocketException')) {
+          throw Exception('Network error. Please check your internet connection.');
+        }
+        throw Exception('Failed to fetch weather data: $e');
       }
     } catch (e) {
-      throw Exception('Failed to fetch weather data: $e');
+      if (e.toString().contains('Location services are disabled')) {
+        throw Exception('Please enable location services to get weather data.');
+      } else if (e.toString().contains('Location permissions are denied')) {
+        throw Exception('Please grant location permissions to get weather data.');
+      }
+      rethrow;
     }
   }
 
   Future<Map<String, dynamic>> fetchDailyForecast() async {
-    final position = await getCurrentLocation();
-    final url = Uri.parse(
-        'https://api.openweathermap.org/data/2.5/forecast?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric');
-
     try {
-      final response = await http.get(url);
+      final position = await getCurrentLocation();
+      final url = Uri.parse(
+          'https://api.openweathermap.org/data/2.5/forecast?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric');
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        
-        // Process hourly forecast data
-        final List<dynamic> hourlyList = data['list'];
-        final List<HourlyForecast> hourlyForecasts = [];
-        
-        // Get next 24 hours of forecast (8 data points, as each is 3 hours apart)
-        for (var i = 0; i < 8 && i < hourlyList.length; i++) {
-          final item = hourlyList[i];
-          final DateTime date = DateTime.fromMillisecondsSinceEpoch(item['dt'] * 1000);
-          hourlyForecasts.add(
-            HourlyForecast(
-              date: date,
-              temperature: item['main']['temp'].toDouble(),
-              description: item['weather'][0]['description'],
-              icon: item['weather'][0]['icon'],
-            ),
-          );
+      try {
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          
+          // Process hourly forecast data
+          final List<dynamic> hourlyList = data['list'];
+          final List<HourlyForecast> hourlyForecasts = [];
+          
+          // Get next 24 hours of forecast (8 data points, as each is 3 hours apart)
+          for (var i = 0; i < 8 && i < hourlyList.length; i++) {
+            final item = hourlyList[i];
+            final DateTime date = DateTime.fromMillisecondsSinceEpoch(item['dt'] * 1000);
+            hourlyForecasts.add(
+              HourlyForecast(
+                date: date,
+                temperature: item['main']['temp'].toDouble(),
+                description: item['weather'][0]['description'],
+                icon: item['weather'][0]['icon'],
+              ),
+            );
+          }
+          
+          data['hourly_forecast'] = hourlyForecasts;
+          return data;
+        } else if (response.statusCode == 401) {
+          throw Exception('Invalid API key. Please check your OpenWeather API key.');
+        } else if (response.statusCode == 429) {
+          throw Exception('API rate limit exceeded. Please try again later.');
+        } else {
+          throw Exception('Weather API error: ${response.statusCode} - ${response.body}');
         }
-        
-        data['hourly_forecast'] = hourlyForecasts;
-        return data;
-      } else {
-        throw Exception('Failed to load forecast data');
+      } catch (e) {
+        if (e.toString().contains('SocketException')) {
+          throw Exception('Network error. Please check your internet connection.');
+        }
+        throw Exception('Failed to fetch forecast data: $e');
       }
     } catch (e) {
-      throw Exception('Failed to fetch forecast data: $e');
+      if (e.toString().contains('Location services are disabled')) {
+        throw Exception('Please enable location services to get weather data.');
+      } else if (e.toString().contains('Location permissions are denied')) {
+        throw Exception('Please grant location permissions to get weather data.');
+      }
+      rethrow;
     }
   }
 }
