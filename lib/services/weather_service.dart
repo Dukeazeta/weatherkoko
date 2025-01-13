@@ -34,15 +34,18 @@ class WeatherService {
         if (response.statusCode == 200) {
           return json.decode(response.body);
         } else if (response.statusCode == 401) {
-          throw Exception('Invalid API key. Please check your OpenWeather API key.');
+          throw Exception(
+              'Invalid API key. Please check your OpenWeather API key.');
         } else if (response.statusCode == 429) {
           throw Exception('API rate limit exceeded. Please try again later.');
         } else {
-          throw Exception('Weather API error: ${response.statusCode} - ${response.body}');
+          throw Exception(
+              'Weather API error: ${response.statusCode} - ${response.body}');
         }
       } catch (e) {
         if (e.toString().contains('SocketException')) {
-          throw Exception('Network error. Please check your internet connection.');
+          throw Exception(
+              'Network error. Please check your internet connection.');
         }
         throw Exception('Failed to fetch weather data: $e');
       }
@@ -50,7 +53,8 @@ class WeatherService {
       if (e.toString().contains('Location services are disabled')) {
         throw Exception('Please enable location services to get weather data.');
       } else if (e.toString().contains('Location permissions are denied')) {
-        throw Exception('Please grant location permissions to get weather data.');
+        throw Exception(
+            'Please grant location permissions to get weather data.');
       }
       rethrow;
     }
@@ -67,15 +71,16 @@ class WeatherService {
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
-          
+
           // Process hourly forecast data
           final List<dynamic> hourlyList = data['list'];
           final List<HourlyForecast> hourlyForecasts = [];
-          
+
           // Get next 24 hours of forecast (8 data points, as each is 3 hours apart)
           for (var i = 0; i < 8 && i < hourlyList.length; i++) {
             final item = hourlyList[i];
-            final DateTime date = DateTime.fromMillisecondsSinceEpoch(item['dt'] * 1000);
+            final DateTime date =
+                DateTime.fromMillisecondsSinceEpoch(item['dt'] * 1000);
             hourlyForecasts.add(
               HourlyForecast(
                 date: date,
@@ -85,19 +90,22 @@ class WeatherService {
               ),
             );
           }
-          
+
           data['hourly_forecast'] = hourlyForecasts;
           return data;
         } else if (response.statusCode == 401) {
-          throw Exception('Invalid API key. Please check your OpenWeather API key.');
+          throw Exception(
+              'Invalid API key. Please check your OpenWeather API key.');
         } else if (response.statusCode == 429) {
           throw Exception('API rate limit exceeded. Please try again later.');
         } else {
-          throw Exception('Weather API error: ${response.statusCode} - ${response.body}');
+          throw Exception(
+              'Weather API error: ${response.statusCode} - ${response.body}');
         }
       } catch (e) {
         if (e.toString().contains('SocketException')) {
-          throw Exception('Network error. Please check your internet connection.');
+          throw Exception(
+              'Network error. Please check your internet connection.');
         }
         throw Exception('Failed to fetch forecast data: $e');
       }
@@ -105,7 +113,8 @@ class WeatherService {
       if (e.toString().contains('Location services are disabled')) {
         throw Exception('Please enable location services to get weather data.');
       } else if (e.toString().contains('Location permissions are denied')) {
-        throw Exception('Please grant location permissions to get weather data.');
+        throw Exception(
+            'Please grant location permissions to get weather data.');
       }
       rethrow;
     }
@@ -118,5 +127,9 @@ class HourlyForecast {
   final String description;
   final String icon;
 
-  HourlyForecast({required this.date, required this.temperature, required this.description, required this.icon});
+  HourlyForecast(
+      {required this.date,
+      required this.temperature,
+      required this.description,
+      required this.icon});
 }

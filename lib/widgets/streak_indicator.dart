@@ -12,17 +12,47 @@ class StreakIndicator extends StatefulWidget {
 class _StreakIndicatorState extends State<StreakIndicator> {
   late SharedPreferences prefs;
   final List<String> months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
   ];
-  final List<String> weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  final List<String> weekDays = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun'
+  ];
   Map<String, bool> activityData = {};
   int currentStreak = 0;
+  late DateTime firstDay;
+  late int totalWeeks;
 
   @override
   void initState() {
     super.initState();
+    _calculateDateRange();
     _initializePrefs();
+  }
+
+  void _calculateDateRange() {
+    final now = DateTime.now();
+    // Start from the first day of the year
+    firstDay = DateTime(now.year, 1, 1);
+    // Calculate weeks needed to show the full year
+    int daysInYear = DateTime(now.year + 1, 1, 1).difference(firstDay).inDays;
+    totalWeeks = (daysInYear / 7).ceil();
   }
 
   Future<void> _initializePrefs() async {
@@ -34,14 +64,12 @@ class _StreakIndicatorState extends State<StreakIndicator> {
   Future<void> _recordDailyVisit() async {
     final now = DateTime.now();
     final today = DateFormat('yyyy-MM-dd').format(now);
-    
-    // Record today's visit
     await prefs.setBool('visit_$today', true);
-    
+
     // Calculate current streak
     int streak = 0;
     DateTime checkDate = now;
-    
+
     while (true) {
       final dateStr = DateFormat('yyyy-MM-dd').format(checkDate);
       if (prefs.getBool('visit_$dateStr') == true) {
@@ -59,10 +87,12 @@ class _StreakIndicatorState extends State<StreakIndicator> {
 
   void _loadActivityData() {
     final now = DateTime.now();
-    
-    // Load last 365 days of activity
-    for (int i = 0; i < 365; i++) {
-      final date = now.subtract(Duration(days: i));
+    final startOfYear = DateTime(now.year, 1, 1);
+
+    // Load activity data for the entire year
+    for (DateTime date = startOfYear;
+        date.isBefore(now.add(const Duration(days: 1)));
+        date = date.add(const Duration(days: 1))) {
       final dateStr = DateFormat('yyyy-MM-dd').format(date);
       final wasActive = prefs.getBool('visit_$dateStr') ?? false;
       activityData[dateStr] = wasActive;
@@ -119,17 +149,17 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                   children: [
                     const SizedBox(height: 28), // Spacing for month row
                     ...weekDays.map((day) => Container(
-                      height: 30,
-                      padding: const EdgeInsets.only(right: 8),
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        day,
-                        style: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 12,
-                        ),
-                      ),
-                    )),
+                          height: 14,
+                          padding: const EdgeInsets.only(right: 8),
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            day.substring(0, 1), // Show only first letter
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 10,
+                            ),
+                          ),
+                        )),
                   ],
                 ),
                 // Activity grid
@@ -139,14 +169,26 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                     // Months row
                     Row(
                       children: List.generate(12, (monthIndex) {
+                        final monthStart =
+                            DateTime(firstDay.year, monthIndex + 1, 1);
+                        final weekOffset =
+                            monthStart.difference(firstDay).inDays ~/ 7;
+                        final width = monthIndex < 11
+                            ? DateTime(firstDay.year, monthIndex + 2, 1)
+                                    .difference(monthStart)
+                                    .inDays ~/
+                                7 *
+                                14
+                            : (totalWeeks - weekOffset) * 14;
+
                         return Container(
-                          width: 52,
-                          alignment: Alignment.centerLeft,
+                          width: width.toDouble(),
+                          padding: const EdgeInsets.only(left: 8),
                           child: Text(
                             months[monthIndex],
                             style: TextStyle(
                               color: Colors.grey.shade400,
-                              fontSize: 12,
+                              fontSize: 10,
                             ),
                           ),
                         );
@@ -155,27 +197,37 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                     const SizedBox(height: 8),
                     // Activity squares
                     Row(
-                      children: List.generate(52, (weekIndex) {
+                      children: List.generate(totalWeeks, (weekIndex) {
                         return Column(
                           children: List.generate(7, (dayIndex) {
-                            final date = DateTime.now().subtract(
+                            final date = firstDay.add(
                               Duration(days: weekIndex * 7 + dayIndex),
                             );
-                            final dateStr = DateFormat('yyyy-MM-dd').format(date);
-                            return Padding(
-                              padding: const EdgeInsets.all(2),
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: _getActivityColor(activityData[dateStr]),
-                                  borderRadius: BorderRadius.circular(2),
+                            // Don't show future dates
+                            if (date.isAfter(DateTime.now())) {
+                              return Container(
+                                margin: const EdgeInsets.all(2),
+                                child: const SizedBox(
+                                  width: 10,
+                                  height: 10,
                                 ),
+                              );
+                            }
+
+                            final dateStr =
+                                DateFormat('yyyy-MM-dd').format(date);
+                            return Container(
+                              width: 10,
+                              height: 10,
+                              margin: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: _getActivityColor(activityData[dateStr]),
+                                borderRadius: BorderRadius.circular(2),
                               ),
                             );
                           }),
                         );
-                      }).reversed.toList(), // Reverse to show recent activity on the right
+                      }),
                     ),
                   ],
                 ),
@@ -189,7 +241,7 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                 'Less',
                 style: TextStyle(
                   color: Colors.grey.shade400,
-                  fontSize: 12,
+                  fontSize: 10,
                 ),
               ),
               const SizedBox(width: 4),
@@ -215,7 +267,7 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                 'More',
                 style: TextStyle(
                   color: Colors.grey.shade400,
-                  fontSize: 12,
+                  fontSize: 10,
                 ),
               ),
             ],
