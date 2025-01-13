@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class StreakIndicator extends StatefulWidget {
   const StreakIndicator({super.key});
@@ -10,8 +11,13 @@ class StreakIndicator extends StatefulWidget {
 
 class _StreakIndicatorState extends State<StreakIndicator> {
   late SharedPreferences prefs;
+  final List<String> months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  final List<String> weekDays = ['Mon', 'Wed', 'Fri'];
+  Map<String, bool> activityData = {};
   int currentStreak = 0;
-  List<bool> weekActivity = List.filled(7, false);
 
   @override
   void initState() {
@@ -21,28 +27,24 @@ class _StreakIndicatorState extends State<StreakIndicator> {
 
   Future<void> _initializePrefs() async {
     prefs = await SharedPreferences.getInstance();
-    _updateStreak();
+    await _recordDailyVisit();
+    _loadActivityData();
   }
 
-  void _updateStreak() {
+  Future<void> _recordDailyVisit() async {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day).toIso8601String();
+    final today = DateFormat('yyyy-MM-dd').format(now);
     
     // Record today's visit
-    prefs.setString('visit_$today', 'true');
+    await prefs.setBool('visit_$today', true);
     
     // Calculate current streak
     int streak = 0;
     DateTime checkDate = now;
     
     while (true) {
-      final dateStr = DateTime(
-        checkDate.year,
-        checkDate.month,
-        checkDate.day,
-      ).toIso8601String();
-      
-      if (prefs.getString('visit_$dateStr') != null) {
+      final dateStr = DateFormat('yyyy-MM-dd').format(checkDate);
+      if (prefs.getBool('visit_$dateStr') == true) {
         streak++;
         checkDate = checkDate.subtract(const Duration(days: 1));
       } else {
@@ -52,21 +54,25 @@ class _StreakIndicatorState extends State<StreakIndicator> {
 
     setState(() {
       currentStreak = streak;
-      weekActivity = _getLastSevenDaysActivity();
     });
   }
 
-  List<bool> _getLastSevenDaysActivity() {
-    List<bool> activity = List.filled(7, false);
+  void _loadActivityData() {
     final now = DateTime.now();
     
-    for (int i = 0; i < 7; i++) {
+    // Load last 365 days of activity
+    for (int i = 0; i < 365; i++) {
       final date = now.subtract(Duration(days: i));
-      final dateStr = DateTime(date.year, date.month, date.day).toIso8601String();
-      activity[6 - i] = prefs.getString('visit_$dateStr') != null;
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+      final wasActive = prefs.getBool('visit_$dateStr') ?? false;
+      activityData[dateStr] = wasActive;
     }
-    
-    return activity;
+    setState(() {});
+  }
+
+  Color _getActivityColor(bool? active) {
+    if (active == null || !active) return Colors.grey.shade800;
+    return Colors.green.shade500;
   }
 
   @override
@@ -74,41 +80,146 @@ class _StreakIndicatorState extends State<StreakIndicator> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: Colors.black87,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                '🔥',
-                style: TextStyle(fontSize: 24),
+              Text(
+                '$currentStreak',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
-                '$currentStreak day streak',
+                'day${currentStreak == 1 ? '' : 's'} streak',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Week days column
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const SizedBox(height: 28), // Spacing for month row
+                    ...weekDays.map((day) => Container(
+                      height: 30,
+                      padding: const EdgeInsets.only(right: 8),
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        day,
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 12,
+                        ),
+                      ),
+                    )),
+                  ],
+                ),
+                // Activity grid
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Months row
+                    Row(
+                      children: List.generate(12, (monthIndex) {
+                        final date = DateTime.now().subtract(Duration(days: monthIndex * 30));
+                        return Container(
+                          width: 52,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            months[date.month - 1],
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 12,
+                            ),
+                          ),
+                        );
+                      }).reversed.toList(),
+                    ),
+                    const SizedBox(height: 8),
+                    // Activity squares
+                    Row(
+                      children: List.generate(52, (weekIndex) {
+                        return Column(
+                          children: List.generate(7, (dayIndex) {
+                            final date = DateTime.now().subtract(
+                              Duration(days: (52 - weekIndex) * 7 + (6 - dayIndex)),
+                            );
+                            final dateStr = DateFormat('yyyy-MM-dd').format(date);
+                            return Padding(
+                              padding: const EdgeInsets.all(2),
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: _getActivityColor(activityData[dateStr]),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            );
+                          }),
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: weekActivity.map((active) => Container(
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: active ? Colors.green[400] : Colors.grey[800],
-                borderRadius: BorderRadius.circular(4),
+            children: [
+              Text(
+                'Less',
+                style: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 12,
+                ),
               ),
-            )).toList(),
+              const SizedBox(width: 4),
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade800,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: Colors.green.shade500,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'More',
+                style: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
         ],
       ),
