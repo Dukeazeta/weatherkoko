@@ -8,6 +8,8 @@ import '../bloc/settings_bloc.dart';
 import '../bloc/settings_event.dart';
 import '../bloc/weather_bloc.dart';
 import '../bloc/weather_event.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -87,6 +89,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: state.useFahrenheit,
                     onChanged: _toggleTemperatureUnit,
                     activeColor: Colors.blueAccent,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  color: const Color(0xFF2C2F33),
+                  child: Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, child) => SwitchListTile(
+                      title: Text(
+                        'Dark Mode',
+                        style: GoogleFonts.spaceGrotesk(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        'Switch between light and dark theme',
+                        style: GoogleFonts.spaceGrotesk(color: Colors.white70),
+                      ),
+                      value: themeProvider.isDarkMode,
+                      onChanged: (_) => themeProvider.toggleTheme(),
+                      activeColor: Colors.blueAccent,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),

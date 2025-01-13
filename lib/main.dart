@@ -13,11 +13,18 @@ import 'bloc/settings_bloc.dart';
 import 'bloc/settings_event.dart';
 import 'screens/detailed_weather_screen.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
-  runApp(const WeatherApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const WeatherApp(),
+    ),
+  );
 }
 
 class WeatherApp extends StatefulWidget {
@@ -52,13 +59,12 @@ class _WeatherAppState extends State<WeatherApp> {
           create: (context) => SettingsBloc()..add(LoadSettings()),
         ),
       ],
-      child: MaterialApp(
-        home: WeatherScreen(),
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          textTheme: GoogleFonts.spaceGroteskTextTheme(
-            Theme.of(context).textTheme,
-          ),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) => MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'WeatherKoko',
+          theme: themeProvider.theme,
+          home: WeatherScreen(),
         ),
       ),
     );
