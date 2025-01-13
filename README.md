@@ -1,16 +1,39 @@
-# weatherkoko
+# WeatherKoko
 
-A new Flutter project.
+WeatherKoko is a modern, user-friendly weather application built with Flutter that provides real-time weather information with a beautiful and intuitive interface. The app features a unique streak system that encourages users to check the weather daily.
+
+## Features
+
+- Real-time weather data with detailed information
+- Beautiful animations and weather illustrations
+- Daily streak system to encourage regular weather checks
+- Detailed weather information including temperature, humidity, and wind speed
+- Settings customization for temperature units and notifications
+- Clean and modern Material Design interface
+
+## Technologies Used
+
+- Flutter & Dart
+- OpenWeatherMap API for weather data
+- Bloc pattern for state management
+- Shared Preferences for local data storage
+- Lottie for weather animations
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+1. Clone this repository
+2. Ensure you have Flutter installed on your machine
+3. Run `flutter pub get` to install dependencies
+4. Add your OpenWeatherMap API key in the appropriate configuration
+5. Run the app using `flutter run`
 
-A few resources to get you started if this is your first Flutter project:
+## Screenshots
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+[Coming soon]
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Contributing
+
+Feel free to submit issues and enhancement requests!
+
+---
+Built with ❤️ by KOKO Labs
