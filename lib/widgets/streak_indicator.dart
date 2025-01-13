@@ -12,8 +12,8 @@ class StreakIndicator extends StatefulWidget {
 class _StreakIndicatorState extends State<StreakIndicator> {
   late SharedPreferences prefs;
   final List<String> months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'Dec', 'Nov', 'Oct', 'Sep', 'Aug', 'Jul',
+    'Jun', 'May', 'Apr', 'Mar', 'Feb', 'Jan'
   ];
   final List<String> weekDays = ['Mon', 'Wed', 'Fri'];
   Map<String, bool> activityData = {};
