@@ -35,7 +35,7 @@ class WeatherApp extends StatelessWidget {
           create: (context) => SettingsBloc()..add(LoadSettings()),
         ),
       ],
-      child: MaterialApp(   
+      child: MaterialApp(
         home: WeatherScreen(),
         debugShowCheckedModeBanner: false,
         theme: ThemeData(

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/weather_model.dart';
 import '../bloc/settings_bloc.dart';
 import 'settings_screen.dart';
+import '../widgets/streak_indicator.dart';
 
 class DetailedWeatherScreen extends StatelessWidget {
   final WeatherModel weather;
@@ -72,6 +73,8 @@ class DetailedWeatherScreen extends StatelessWidget {
                     height: 120,
                     child: _buildInfoGrid(),
                   ),
+                  const SizedBox(height: 20),
+                  const StreakIndicator(),
                 ],
               ),
             ),
