@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'services/weather_service.dart';
 import 'package:lottie/lottie.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/weather_bloc.dart';
 import 'bloc/weather_event.dart';
 import 'bloc/weather_state.dart';
 import 'bloc/settings_bloc.dart';
 import 'bloc/settings_event.dart';
 import 'screens/detailed_weather_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 
 void main() async {
@@ -20,8 +20,25 @@ void main() async {
   runApp(const WeatherApp());
 }
 
-class WeatherApp extends StatelessWidget {
+class WeatherApp extends StatefulWidget {
   const WeatherApp({super.key});
+
+  @override
+  State<WeatherApp> createState() => _WeatherAppState();
+}
+
+class _WeatherAppState extends State<WeatherApp> {
+  @override
+  void initState() {
+    super.initState();
+    _recordAppVisit();
+  }
+
+  Future<void> _recordAppVisit() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    await prefs.setBool('visit_$today', true);
+  }
 
   @override
   Widget build(BuildContext context) {

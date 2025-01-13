@@ -139,19 +139,23 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                     // Months row
                     Row(
                       children: List.generate(12, (monthIndex) {
-                        final date = DateTime.now().subtract(Duration(days: monthIndex * 30));
+                        final now = DateTime.now();
+                        final yearStart = DateTime(now.year, 1);
+                        final monthDate = now.subtract(Duration(days: monthIndex * 30));
+                        final monthName = months[monthDate.month - 1];
+                        
                         return Container(
                           width: 52,
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            months[date.month - 1],
+                            monthName,
                             style: TextStyle(
                               color: Colors.grey.shade400,
                               fontSize: 12,
                             ),
                           ),
                         );
-                      }).reversed.toList(),
+                      }).reversed.toList(), // Reverse to show current month on the right
                     ),
                     const SizedBox(height: 8),
                     // Activity squares
@@ -160,7 +164,7 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                         return Column(
                           children: List.generate(7, (dayIndex) {
                             final date = DateTime.now().subtract(
-                              Duration(days: (52 - weekIndex) * 7 + (6 - dayIndex)),
+                              Duration(days: weekIndex * 7 + dayIndex),
                             );
                             final dateStr = DateFormat('yyyy-MM-dd').format(date);
                             return Padding(
@@ -176,7 +180,7 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                             );
                           }),
                         );
-                      }),
+                      }).reversed.toList(), // Reverse to show recent activity on the right
                     ),
                   ],
                 ),
