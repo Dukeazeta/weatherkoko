@@ -12,10 +12,10 @@ class StreakIndicator extends StatefulWidget {
 class _StreakIndicatorState extends State<StreakIndicator> {
   late SharedPreferences prefs;
   final List<String> months = [
-    'Dec', 'Nov', 'Oct', 'Sep', 'Aug', 'Jul',
-    'Jun', 'May', 'Apr', 'Mar', 'Feb', 'Jan'
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
-  final List<String> weekDays = ['Mon', 'Wed', 'Fri'];
+  final List<String> weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   Map<String, bool> activityData = {};
   int currentStreak = 0;
 
@@ -139,23 +139,18 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                     // Months row
                     Row(
                       children: List.generate(12, (monthIndex) {
-                        final now = DateTime.now();
-                        final yearStart = DateTime(now.year, 1);
-                        final monthDate = now.subtract(Duration(days: monthIndex * 30));
-                        final monthName = months[monthDate.month - 1];
-                        
                         return Container(
                           width: 52,
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            monthName,
+                            months[monthIndex],
                             style: TextStyle(
                               color: Colors.grey.shade400,
                               fontSize: 12,
                             ),
                           ),
                         );
-                      }).reversed.toList(), // Reverse to show current month on the right
+                      }),
                     ),
                     const SizedBox(height: 8),
                     // Activity squares
