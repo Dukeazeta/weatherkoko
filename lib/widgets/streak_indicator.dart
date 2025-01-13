@@ -147,7 +147,8 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const SizedBox(height: 28), // Spacing for month row
+                    const SizedBox(
+                        height: 20), // Reduced spacing for better alignment
                     ...weekDays.map((day) => Container(
                           height: 14,
                           padding: const EdgeInsets.only(right: 8),
@@ -207,9 +208,16 @@ class _StreakIndicatorState extends State<StreakIndicator> {
                             if (date.isAfter(DateTime.now())) {
                               return Container(
                                 margin: const EdgeInsets.all(2),
-                                child: const SizedBox(
+                                child: SizedBox(
                                   width: 10,
                                   height: 10,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFF1E1E1E),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(2)),
+                                    ),
+                                  ),
                                 ),
                               );
                             }
