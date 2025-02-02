@@ -86,96 +86,102 @@ class WeatherScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 17, 17, 20),
-      body: BlocBuilder<WeatherBloc, WeatherState>(
-        builder: (context, state) {
-          if (state is WeatherLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<WeatherBloc>().add(FetchWeather());
+        await Future.delayed(Duration(seconds: 1));
+      },
+      child: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 17, 17, 20),
+        body: BlocBuilder<WeatherBloc, WeatherState>(
+          builder: (context, state) {
+            if (state is WeatherLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state is WeatherError) {
-            return Center(child: Text(state.message));
-          }
+            if (state is WeatherError) {
+              return Center(child: Text(state.message));
+            }
 
-          if (state is WeatherLoaded) {
-            return BlocBuilder<SettingsBloc, SettingsState>(
-              builder: (context, settingsState) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 60),
-                      Text(
-                        state.weather.location,
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+            if (state is WeatherLoaded) {
+              return BlocBuilder<SettingsBloc, SettingsState>(
+                builder: (context, settingsState) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 60),
+                        Text(
+                          state.weather.location,
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      Lottie.asset(
-                        state.weather.animation,
-                        width: 300,
-                        height: 300,
-                        repeat: true,
-                        fit: BoxFit.contain,
-                      ),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BlocProvider.value(
-                                      value: BlocProvider.of<SettingsBloc>(
-                                          context),
-                                      child: DetailedWeatherScreen(
-                                        weather: state.weather,
+                        SizedBox(height: 20),
+                        Lottie.asset(
+                          state.weather.animation,
+                          width: 300,
+                          height: 300,
+                          repeat: true,
+                          fit: BoxFit.contain,
+                        ),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => BlocProvider.value(
+                                        value: BlocProvider.of<SettingsBloc>(
+                                            context),
+                                        child: DetailedWeatherScreen(
+                                          weather: state.weather,
+                                        ),
                                       ),
                                     ),
+                                  );
+                                },
+                                child: Text(
+                                  _formatTemperature(state.weather.temperature,
+                                      settingsState.useFahrenheit),
+                                  textScaleFactor: 1.3,
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontSize: 115,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.2,
+                                    letterSpacing: -4,
+                                    color: Colors.blueAccent,
                                   ),
-                                );
-                              },
-                              child: Text(
-                                _formatTemperature(state.weather.temperature,
-                                    settingsState.useFahrenheit),
-                                textScaleFactor: 1.3,
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 115,
-                                  fontWeight: FontWeight.w900,
-                                  height: 1.2,
-                                  letterSpacing: -4,
-                                  color: Colors.blueAccent,
                                 ),
                               ),
-                            ),
-                            Text(
-                              toBeginningOfSentenceCase(
-                                      state.weather.description) ??
-                                  state.weather.description,
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
+                              Text(
+                                toBeginningOfSentenceCase(
+                                        state.weather.description) ??
+                                    state.weather.description,
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          }
+                      ],
+                    ),
+                  );
+                },
+              );
+            }
 
-          return const Center(child: CircularProgressIndicator());
-        },
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }

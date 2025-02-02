@@ -23,6 +23,9 @@ class DailyForecast {
     final desc = description.toLowerCase();
 
     if (desc.contains('cloud') || desc.contains('overcast')) {
+      if (desc.contains('few') || desc.contains('scattered')) {
+        return isNight ? 'assets/Partly Cloudy night.json' : 'assets/Partly Cloudy.json';
+      }
       return isNight ? 'assets/Cloudy night.json' : 'assets/Cloudy.json';
     } else if (desc.contains('clear') || desc.contains('sunny')) {
       return isNight ? 'assets/Clear night.json' : 'assets/Sunny.json';

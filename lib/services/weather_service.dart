@@ -26,7 +26,7 @@ class WeatherService {
     try {
       final position = await getCurrentLocation();
       final url = Uri.parse(
-          'https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric');
+          'https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric&timestamp=${DateTime.now().millisecondsSinceEpoch}');
 
       try {
         final response = await http.get(url);
@@ -64,7 +64,7 @@ class WeatherService {
     try {
       final position = await getCurrentLocation();
       final url = Uri.parse(
-          'https://api.openweathermap.org/data/2.5/forecast?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric');
+          'https://api.openweathermap.org/data/2.5/forecast?lat=${position.latitude}&lon=${position.longitude}&appid=$apiKey&units=metric&timestamp=${DateTime.now().millisecondsSinceEpoch}');
 
       try {
         final response = await http.get(url);
